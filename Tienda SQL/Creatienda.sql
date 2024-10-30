@@ -1,58 +1,65 @@
--- Tabla familia: Contiene las familias a las que pertenecen los productos, como por ejemplo ordenadores, impresoras,etc.
--- Primero voy a introducir los datos de las tablas para luego pasar a establecer las correspondientes restricciones.
+-- Table: FAMILIA
+-- Stores the categories (families) to which products belong, such as computers, printers, etc.
+-- Data insertion will occur before setting the relevant constraints.
 
 CREATE TABLE FAMILIA
 (
-	CODFAMILIA NUMBER(3), --Codigo que distingue una familia de otra
-	DENOFAMILIA VARCHAR2(50) CONSTRAINT NN_DENOFAMILIA NOT NULL, -- Denominacion de la familia.
-	-- Restricciones:
-	CONSTRAINT PK_FAMILIA PRIMARY KEY(CODFAMILIA),
-	CONSTRAINT UN_DENOFAMILIA UNIQUE(DENOFAMILIA)
+    CODFAMILIA NUMBER(3), -- Unique identifier for each product family.
+    DENOFAMILIA VARCHAR2(50) CONSTRAINT NN_DENOFAMILIA NOT NULL, -- Name of the family.
+
+    -- Constraints:
+    CONSTRAINT PK_FAMILIA PRIMARY KEY(CODFAMILIA), -- Primary key constraint on family code.
+    CONSTRAINT UN_DENOFAMILIA UNIQUE(DENOFAMILIA) -- Ensures each family name is unique.
 );
 
---Tabla producto: contendrá información general sobre los productos que distribuye la empresa a las tiendas.
+-- Table: PRODUCTO
+-- Holds general information about the products distributed by the company to stores.
 
 CREATE TABLE PRODUCTO
 (
-	CODPRODUCTO NUMBER(5), -- Código que distingue un producto de otro.
-	DENOPRODUCTO VARCHAR2(20) CONSTRAINT NN_DENOPRODUCTO NOT NULL, -- Denominación del producto.
-	DESCRIPCION VARCHAR2(100), -- Descripción del producto.
-	PRECIOBASE NUMBER(8,2) CONSTRAINT NN_PRECIOBASE NOT NULL, -- Precio base del producto.
-	PORCREPOSICION NUMBER (3), -- Porcentaje de reposición aplicado a ese producto. Se utilizará para aplicar a las unidades mínimas y obtener el número total de unidades a reponer cuando el stock esté bajo mínimo
-	UNIDADESMINIMAS NUMBER(4) CONSTRAINT NN_UNIDADESMINIMAS NOT NULL, --Unidades mínimas recomendables en almacen.
-	CODFAMILIA NUMBER(3) CONSTRAINT NN_CODFAMILIA NOT NULL, --Codigo que distingue una familia de otra
-	-- Restricciones:
-	CONSTRAINT PK_PRODUCTO PRIMARY KEY(CODPRODUCTO),
-	CONSTRAINT CK_PRECIOBASE CHECK(PRECIOBASE > 0),
-	CONSTRAINT CK_PORCREPOSICION CHECK(PORCREPOSICION > 0),
-	CONSTRAINT CK_UNIDADESMINIMAS CHECK(UNIDADESMINIMAS > 0),
-	CONSTRAINT FK_FAMILIA FOREIGN KEY(CODFAMILIA) REFERENCES FAMILIA(CODFAMILIA)
+    CODPRODUCTO NUMBER(5), -- Unique identifier for each product.
+    DENOPRODUCTO VARCHAR2(20) CONSTRAINT NN_DENOPRODUCTO NOT NULL, -- Product name.
+    DESCRIPCION VARCHAR2(100), -- Product description.
+    PRECIOBASE NUMBER(8,2) CONSTRAINT NN_PRECIOBASE NOT NULL, -- Base price of the product.
+    PORCREPOSICION NUMBER(3), -- Replenishment percentage used to calculate restock quantity when inventory is below minimum.
+    UNIDADESMINIMAS NUMBER(4) CONSTRAINT NN_UNIDADESMINIMAS NOT NULL, -- Minimum recommended stock in storage.
+    CODFAMILIA NUMBER(3) CONSTRAINT NN_CODFAMILIA NOT NULL, -- Family code to classify the product.
+
+    -- Constraints:
+    CONSTRAINT PK_PRODUCTO PRIMARY KEY(CODPRODUCTO), -- Primary key constraint on product code.
+    CONSTRAINT CK_PRECIOBASE CHECK(PRECIOBASE > 0), -- Base price must be positive.
+    CONSTRAINT CK_PORCREPOSICION CHECK(PORCREPOSICION > 0), -- Replenishment percentage must be positive.
+    CONSTRAINT CK_UNIDADESMINIMAS CHECK(UNIDADESMINIMAS > 0), -- Minimum units in stock must be positive.
+    CONSTRAINT FK_FAMILIA FOREIGN KEY(CODFAMILIA) REFERENCES FAMILIA(CODFAMILIA) -- Foreign key links each product to its family.
 );
 
--- Tabla tienda: contendrá información básica sobre las tiendas que distribuyen los productos.
+-- Table: TIENDA
+-- Holds basic information about the stores that distribute products.
 
 CREATE TABLE TIENDA
 (
-	CODTIENDA NUMBER(3), -- Código que distingue una tienda de otra.
-	DENOTIENDA VARCHAR2(20) CONSTRAINT NN_DENOTIENDA NOT NULL, -- Denominación o nombre de la tienda.
-	TELEFONO VARCHAR2(11), -- Teléfono de la tienda.
-	CODIGOPOSTAL VARCHAR2(5) CONSTRAINT NN_CODIGOPOSTAL NOT NULL, -- Codigo Postal donde se ubica la tienda.
-	PROVINCIA VARCHAR2(5) CONSTRAINT NN_PROVINCIA NOT NULL, -- Provincia donde se ubica la tienda.
-	-- Restricciones:
-	CONSTRAINT PK_TIENDA PRIMARY KEY(CODTIENDA)
+    CODTIENDA NUMBER(3), -- Unique identifier for each store.
+    DENOTIENDA VARCHAR2(20) CONSTRAINT NN_DENOTIENDA NOT NULL, -- Store name.
+    TELEFONO VARCHAR2(11), -- Store contact number.
+    CODIGOPOSTAL VARCHAR2(5) CONSTRAINT NN_CODIGOPOSTAL NOT NULL, -- Postal code where the store is located.
+    PROVINCIA VARCHAR2(5) CONSTRAINT NN_PROVINCIA NOT NULL, -- Province where the store is located.
+
+    -- Constraints:
+    CONSTRAINT PK_TIENDA PRIMARY KEY(CODTIENDA) -- Primary key constraint on store code.
 );
 
--- Tabla Stock: Contendrá para cada tienda el número de unidades disponibles de cada producto. La clave primaria está formada por la concatenación de los campos Codtienda y Codproducto.
+-- Table: STOCK
+-- Stores the available quantity of each product in each store. The primary key consists of CODTIENDA and CODPRODUCTO.
 
 CREATE TABLE STOCK
 (
-	CODTIENDA NUMBER(3) CONSTRAINT NN_CODTIENDA NOT NULL, -- Código que distingue una tienda de otra.
-	CODPRODUCTO NUMBER(5) CONSTRAINT NN_CODPRODUCTO NOT NULL, -- Código que distingue un producto de otro.
-	UNIDADES NUMBER(6) CONSTRAINT NN_UNIDADES NOT NULL, -- Unidades de ese producto en esa tienda.
-	-- Restricciones:
-	CONSTRAINT PK_STOCK PRIMARY KEY(CODTIENDA, CODPRODUCTO), -- Permite que un producto pueda aparecer en varias tiendas, y que en una tienda puedan haber varios productos.
-	CONSTRAINT FK_TIENDA FOREIGN KEY(CODTIENDA) REFERENCES TIENDA(CODTIENDA),
-	CONSTRAINT FK_PRODUCTO FOREIGN KEY(CODPRODUCTO) REFERENCES PRODUCTO(CODPRODUCTO),
-	CONSTRAINT CK_UNIDADES CHECK(UNIDADES > = 0)
+    CODTIENDA NUMBER(3) CONSTRAINT NN_CODTIENDA NOT NULL, -- Store identifier.
+    CODPRODUCTO NUMBER(5) CONSTRAINT NN_CODPRODUCTO NOT NULL, -- Product identifier.
+    UNIDADES NUMBER(6) CONSTRAINT NN_UNIDADES NOT NULL, -- Quantity of the product available in the store.
+
+    -- Constraints:
+    CONSTRAINT PK_STOCK PRIMARY KEY(CODTIENDA, CODPRODUCTO), -- Primary key allows multiple products in each store and each product in multiple stores.
+    CONSTRAINT FK_TIENDA FOREIGN KEY(CODTIENDA) REFERENCES TIENDA(CODTIENDA), -- Foreign key links stock entry to the store.
+    CONSTRAINT FK_PRODUCTO FOREIGN KEY(CODPRODUCTO) REFERENCES PRODUCTO(CODPRODUCTO), -- Foreign key links stock entry to the product.
+    CONSTRAINT CK_UNIDADES CHECK(UNIDADES >= 0) -- Ensures units in stock are non-negative.
 );
-	
