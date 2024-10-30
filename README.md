@@ -1,7 +1,3 @@
-Aquí tienes el `README.md` completo en un solo bloque para copiar y pegar:
-
----
-
 # SQL Database Practice Project
 
 This project is a **practice SQL database** designed for learning and mastering database modification and management. The project focuses on enhancing an existing database structure with added constraints, new columns, and user permissions, making it an ideal tool for practicing SQL Data Definition Language (DDL) operations.
